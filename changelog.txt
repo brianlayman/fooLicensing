@@ -1,0 +1,9 @@
+V1.1.0
+
+* Added license shortcode
+* Added license listing templates
+* Added ajax handlers for detaching and attaching domains
+* Dropped email settings
+* Dropped email templates
+* Added renewal settings
+* Added renewal functions

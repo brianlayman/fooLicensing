@@ -1,0 +1,4 @@
+/* hide the create connection P2P box */
+.p2p-box[data-p2p_type="license_to_license_upgrades"][data-direction="from"] .p2p-create-connections {
+	display:none;
+}
