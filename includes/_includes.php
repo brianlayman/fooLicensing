@@ -10,6 +10,7 @@ require_once 'licensekey_checker.php';
 require_once 'key_generator.php';
 require_once 'functions.php';
 require_once 'renewals.php';
+require_once 'upgrades.php';
 require_once 'templates.php';
 require_once 'ajax.php';
 require_once 'scripts.php';

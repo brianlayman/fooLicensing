@@ -60,7 +60,8 @@ function foolic_perform_upgrade( $licensekey_id, $upgrade_license_id ) {
 		//save upgrade post meta
 		$existing_upgrades = foolic_get_upgrades( $license_key->ID );
 		$existing_upgrades[] = array(
-			'upgrade_date' => date( $date_format )
+			'upgrade_date' 		=> date( $date_format ),
+			'upgrade_details' 	=> __('Upgrade to', 'foolicensing') . ' ' . $license->name
 		);
 		foolic_update_upgrades( $license_key->ID, $existing_upgrades );
 
@@ -70,14 +71,14 @@ function foolic_perform_upgrade( $licensekey_id, $upgrade_license_id ) {
 	return false;
 }
 
-functionaaaaaaaa foolic_get_renewals( $licensekey_id ) {
-	$renewals = get_post_meta( $licensekey_id, 'foolic_renewals', true );
-	if ( empty( $renewals ) ) {
+function foolic_get_upgrades( $licensekey_id ) {
+	$upgrades = get_post_meta( $licensekey_id, 'foolic_upgrades', true );
+	if ( empty( $upgrades ) ) {
 		return array();
 	}
-	return $renewals;
+	return $upgrades;
 }
 
-functiosssssssssssssn foolic_update_renewals( $licensekey_id, $renewals ) {
-	update_post_meta( $licensekey_id, 'foolic_renewals', $renewals );
+function foolic_update_upgrades( $licensekey_id, $upgrades ) {
+	update_post_meta( $licensekey_id, 'foolic_upgrades', $upgrades );
 }

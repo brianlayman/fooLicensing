@@ -9,6 +9,7 @@ if ( $license_keys ) {
 			$domains          = foolic_license_listing_get_sorted_domains( $key );
 			$attached_domains = $key->get_attached_domains();
 			$renewals		  = foolic_get_renewals( $key->ID );
+			$upgrades   	  = foolic_get_upgrades( $key->ID );
 			?>
 			<div class="foolic_license_listing_item">
 				<h2><?php echo $key->get_license()->name; ?></h2>
@@ -74,6 +75,30 @@ if ( $license_keys ) {
 							for ( $i = 1; $i < count( $renewals ); $i++ ) {
 								echo '<tr><th></th><td>';
 								echo $renewals[$i]['renewal_date'];
+								echo '</td></tr>';
+							}
+						}
+						?>
+					<?php } ?>
+					<?php if ( count( $upgrades ) > 0 ) { ?>
+						<tr>
+							<th><?php _e( 'Upgrades', 'foolicensing' ); ?></th>
+							<td>
+								<?php
+									echo $renewals[0]['renewal_date'];
+									if (array_key_exists('upgrade_details', $renewals[0])) {
+										echo ' -&gt; ' . $renewals[0]['upgrade_details'];
+									}
+								?>
+							</td>
+						</tr>
+						<?php if ( count( $upgrades ) > 1 ) {
+							for ( $i = 1; $i < count( $upgrades ); $i++ ) {
+								echo '<tr><th></th><td>';
+								echo $renewals[0]['renewal_date'];
+								if (array_key_exists('upgrade_details', $renewals[0])) {
+									echo ' -&gt; ' . $renewals[0]['upgrade_details'];
+								}
 								echo '</td></tr>';
 							}
 						}
