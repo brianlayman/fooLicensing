@@ -46,105 +46,135 @@ if (!class_exists('foolic_licensekey_checker')) {
                     'status' => self::STATUS_ERROR,
                     'message' => __('The type of license was not specified', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => true
+                    'error' => true,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_BAD_LICENSE => array (
                     'valid' => false,
                     'status' => self::STATUS_ERROR,
                     'message' => __('The type of license does not exist', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => true
+                    'error' => true,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_KEY_REQUIRED => array (
                     'valid' => false,
                     'status' => self::STATUS_REQUIRED,
                     'message' => __('A license key is required', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => false
+                    'error' => false,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_KEY_NOT_REQUIRED => array (
                     'valid' => true,
                     'status' => self::STATUS_VALID,
                     'message' => __('A license key is not required', 'foolic'),
                     'color' => self::COLOR_NEUTRAL,
-                    'error' => false
+                    'error' => false,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_BAD_KEY => array (
                     'valid' => false,
                     'status' => self::STATUS_ERROR,
                     'message' => __('The license key [%s] is NOT valid', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => true
+                    'error' => true,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_LICENSE_KEY_MISMATCH => array (
                     'valid' => false,
                     'status' => self::STATUS_ERROR,
                     'message' => __('The license key [%s] is invalid', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => true
+                    'error' => true,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_IP_BLACKLISTED => array (
                     'valid' => false,
                     'status' => self::STATUS_ERROR,
                     'message' => __('The IP address [%s] has been blacklisted', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => true
+                    'error' => true,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_DOMAIN_DETACHED => array (
                     'valid' => false,
                     'status' => self::STATUS_DETACHED,
                     'message' => __('The license key has been detached from the domain %s', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => false
+                    'error' => false,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_DOMAIN_BLACKLISTED => array (
                     'valid' => false,
                     'status' => self::STATUS_ERROR,
                     'message' => __('The domain [%s] has been blacklisted', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => true
+                    'error' => true,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_KEY_DEACTIVATED => array (
                     'valid' => false,
                     'status' => self::STATUS_DEACTIVATED,
                     'message' => __('The license key has been deactivated', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => false
+                    'error' => false,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_KEY_EXCEEDED => array (
                     'valid' => false,
                     'status' => self::STATUS_EXCEEDED,
                     'message' => __('The domain limit for the license key has been reached', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => false
+                    'error' => false,
+					'renew' => false,
+					'upgrade' => true
                 ),
                 self::CODE_KEY_EXPIRED => array (
                     'valid' => false,
                     'status' => self::STATUS_EXPIRED,
                     'message' => __('The license key expired on %s', 'foolic'),
                     'color' => self::COLOR_ERROR,
-                    'error' => false
+                    'error' => false,
+					'renew' => true,
+					'upgrade' => false
                 ),
                 self::CODE_KEY_VALID_NEVER_EXPIRES => array (
                     'valid' => true,
                     'status' => self::STATUS_VALID,
                     'message' => __('The license key never expires', 'foolic'),
                     'color' => self::COLOR_GOOD,
-                    'error' => false
+                    'error' => false,
+					'renew' => false,
+					'upgrade' => false
                 ),
                 self::CODE_KEY_VALID_EXPIRING_SOON => array (
                     'valid' => true,
                     'status' => self::STATUS_VALID,
                     'message' => __('The license key will expire soon (%s)', 'foolic'),
                     'color' => self::COLOR_WARNING,
-                    'error' => false
+                    'error' => false,
+					'renew' => true,
+					'upgrade' => false
                 ),
                 self::CODE_KEY_VALID => array (
                     'valid' => true,
                     'status' => self::STATUS_VALID,
-                    'message' => __('The license key expires in %s', 'foolic'),
+                    'message' => __('The license key expires %s', 'foolic'),
                     'color' => self::COLOR_GOOD,
-                    'error' => false
+                    'error' => false,
+					'renew' => true,
+					'upgrade' => false
                 )
             );
         }
@@ -153,7 +183,10 @@ if (!class_exists('foolic_licensekey_checker')) {
             return $this->license_instance;
         }
 
-        public function get_licensekey_instance() {
+		/**
+		 * @return foolic_licensekey
+		 */
+		public function get_licensekey_instance() {
             return $this->licensekey_instance;
         }
 

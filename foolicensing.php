@@ -4,7 +4,7 @@
  Plugin URI: http://fooplugins.com
  Description: A license key manager for your plugins and themes that you sell
  Author: Brad Vincent
- Version: 1.1.0
+ Version: 1.1.2
  */
 
 if (!class_exists('foolicensing')) {
@@ -50,7 +50,7 @@ if (!class_exists('foolicensing')) {
 
 			// Plugin Version
 			if ( ! defined( 'FOOLIC_VERSION' ) )
-				define( 'FOOLIC_VERSION', '1.1.0' );
+				define( 'FOOLIC_VERSION', '1.1.2' );
 
 			// Plugin Root File
 			if ( ! defined( 'FOOLIC_PLUGIN_FILE' ) )

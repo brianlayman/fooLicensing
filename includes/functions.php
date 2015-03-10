@@ -116,6 +116,11 @@ function foolic_get_expiring_licensekeys() {
 					strtotime( '+1 month' )
 				),
 				'compare' => 'BETWEEN'
+			),
+			array(
+				'key'     => 'foolic_deactivated',
+				'value'	=> 1,
+				'compare' => 'NOT EXISTS'
 			)
 		)
 	);
@@ -123,7 +128,69 @@ function foolic_get_expiring_licensekeys() {
 	$query = new WP_Query;
 	$keys  = $query->query( $args );
 	if( ! $keys )
-		return false; // no expiring keys found
+		return array(); // no expiring keys found
 
 	return $keys;
+}
+
+function foolic_get_expired_licensekeys() {
+
+	$args = array(
+		'post_type'    => FOOLIC_CPT_LICENSE_KEY,
+		'nopaging'     => true,
+		'fields'       => 'ids',
+		'meta_query'   => array(
+			'relation' => 'AND',
+			array(
+				'key'     => 'foolic_expires',
+				'value'   => current_time( 'timestamp' ),
+				'compare' => '<='
+			),
+			array(
+				'key'     => 'foolic_deactivated',
+				'value'	=> 1,
+				'compare' => 'NOT EXISTS'
+			)
+		)
+	);
+
+	$query = new WP_Query;
+	$keys  = $query->query( $args );
+	if( ! $keys )
+		return array(); // no expiring keys found
+
+	return $keys;
+}
+
+function foolic_get_exceeded_licensekeys() {
+
+	$args = array(
+		'post_type'    => FOOLIC_CPT_LICENSE_KEY,
+		'nopaging'     => true,
+		'fields'       => 'ids',
+		'meta_query'   => array(
+			'relation' => 'AND',
+			array(
+				'key'     => 'foolic_exceeded',
+				'value'   => 1,
+				'compare' => '='
+			),
+			array(
+				'key'     => 'foolic_deactivated',
+				'value'	=> 1,
+				'compare' => 'NOT EXISTS'
+			)
+		)
+	);
+
+	$query = new WP_Query;
+	$keys  = $query->query( $args );
+	if( ! $keys )
+		return array();; // no expiring keys found
+
+	return $keys;
+}
+
+function foolic_format_date($date) {
+	return date(__('d M Y', 'foolic'), strtotime($date));
 }

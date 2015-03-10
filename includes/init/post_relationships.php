@@ -47,6 +47,8 @@ if (!class_exists('foolic_post_relationships')) {
                 'name' => self::LICENSE_TO_LICENSEKEY,
                 'from' => FOOLIC_CPT_LICENSE,
                 'to' => FOOLIC_CPT_LICENSE_KEY,
+				'to_query_vars' => array ('orderby' => 'none'),
+				'from_query_vars' => array ('orderby' => 'none'),
 				'can_create_post' => false,
                 'cardinality' => 'one-to-many',
                 'admin_column' => 'to',
@@ -75,6 +77,8 @@ if (!class_exists('foolic_post_relationships')) {
                     'from' => __( 'Connected Domains', 'foolic' ),
                     'to' => __( 'License Keys', 'foolic' )
                 ),
+				'to_query_vars' => array ('orderby' => 'none'),
+				'from_query_vars' => array ('orderby' => 'none'),
                 'to_labels' => array(
                     'create' => __('Attach Domain', 'foolic')
                 ),

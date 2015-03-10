@@ -8,12 +8,15 @@ if (!class_exists('foolic_columns')) {
     class foolic_columns {
 
         function __construct() {
-            add_filter('manage_edit-' . FOOLIC_CPT_LICENSE . '_columns', array(&$this, 'license_custom_columns'));
-            add_filter('manage_edit-' . FOOLIC_CPT_LICENSE_KEY . '_columns', array(&$this, 'licensekey_custom_columns'));
-            add_filter('manage_edit-' . FOOLIC_CPT_DOMAIN . '_columns', array(&$this, 'domain_custom_columns'));
-            add_filter('manage_edit-' . FOOLIC_CPT_LOG . '_columns', array(&$this, 'log_custom_columns'));
+            add_filter('manage_edit-' . FOOLIC_CPT_LICENSE . '_columns', array($this, 'license_custom_columns'));
+            add_filter('manage_edit-' . FOOLIC_CPT_LICENSE_KEY . '_columns', array($this, 'licensekey_custom_columns'));
+            add_filter('manage_edit-' . FOOLIC_CPT_DOMAIN . '_columns', array($this, 'domain_custom_columns'));
+            add_filter('manage_edit-' . FOOLIC_CPT_LOG . '_columns', array($this, 'log_custom_columns'));
 
-            add_action('manage_posts_custom_column', array(&$this, 'custom_column_content'));
+            add_action('manage_posts_custom_column', array($this, 'custom_column_content'));
+
+			add_action('restrict_manage_posts', array($this, 'licensekey_filter_list') );
+			add_filter('parse_query', array($this, 'licensekey_filtering') );
         }
 
         function license_custom_columns($columns) {
@@ -100,28 +103,88 @@ if (!class_exists('foolic_columns')) {
                     $licensekey->load($post);
                     $valid = foolic_licensekey_checker::validate_license_key($licensekey);
                     echo '<span title="' . $valid['message'] . '" style="color:' . $valid['color'] . '">' . $valid['status'] . '</span>';
+					if ( $licensekey->has_exceeded_domain_limit() ) {
+						echo ' ' . __('Usage:','foolic') . ' ('  . $licensekey->usage_html(). ')';
+					}
+					if ( $licensekey->has_expired() ) {
+						echo ' ' . __('Expires:','foolic') . ' ' . $licensekey->expires;
+					}
                     break;
-//                case FOOLIC_CPT_LOG . '_license':
-//                    $data = get_post_meta($post->ID, 'sales-meta', true);
-//                    $license = $this->safe_get($data, 'license_key', '?');
-//                    $license_id = $this->safe_get($data, 'license_id', 0);
-//                    if ($license_id > 0) {
-//                        $post_type_object = get_post_type_object(self::CPT_LICENSE);
-//                        $url = admin_url(sprintf($post_type_object->_edit_link . '&action=edit', $license_id));
-//                        echo "<a href='$url'>$license</a>";
-//                    } else {
-//                        echo $license;
-//                    }
-//                    break;
-//                case FOOLIC_CPT_LOG . '_domain_count':
-//                    $count = get_post_meta($post->ID, 'domain_count', true);
-//                    if ($count == '') {
-//                        echo '0';
-//                    } else {
-//                        echo $count;
-//                    }
-//                    break;
             }
-        }        
-    }
+        }
+
+		function licensekey_filter_list() {
+			$screen = get_current_screen();
+			global $wp_query;
+			if ( $screen->post_type == FOOLIC_CPT_LICENSE_KEY ) {
+				$filter = isset( $_GET['licensekey_filter_status'] ) ? $_GET['licensekey_filter_status'] : '';
+
+				echo '<select name="licensekey_filter_status"><option>'. __('All Statuses', 'foolic') .'</option>';
+
+				echo '<option value="expiring"' . ($filter == 'expiring' ? ' selected="selected"' : '') . '>' . __('Expiring', 'foolic') . '</option>';
+				echo '<option value="expired"' . ($filter == 'expired' ? ' selected="selected"' : '') . '>' . __('Expired', 'foolic') . '</option>';
+				echo '<option value="exceeded"' . ($filter == 'exceeded' ? ' selected="selected"' : '') . '>' . __('Exceeded', 'foolic') . '</option>';
+
+				echo '</select>';
+			}
+		}
+
+		function licensekey_filtering( $query ) {
+			if ( !function_exists('get_current_screen') ) return;
+			$screen = get_current_screen();
+			if ( !isset( $screen ) ) return;
+
+			$qv = &$query->query_vars;
+
+
+			if ( $screen->post_type == FOOLIC_CPT_LICENSE_KEY && $query->query['post_type'] == FOOLIC_CPT_LICENSE_KEY ) {
+
+				$filter = isset( $_GET['licensekey_filter_status'] ) ? $_GET['licensekey_filter_status'] : '';
+
+				if ( $filter ) {
+
+					if ( 'exceeded' === $filter ) {
+						$qv['meta_query'][] = array(
+							'key'     => 'foolic_exceeded',
+							'value'   => 1,
+							'compare' => '='
+						);
+						$qv['meta_query'][] =array(
+							'key'     => 'foolic_deactivated',
+							'value'	=> 1,
+							'compare' => 'NOT EXISTS'
+						);
+					} else if ('expiring' == $filter ) {
+
+						$qv['meta_query'][] = array(
+							'key'     => 'foolic_expires',
+							'value'   => array(
+								current_time( 'timestamp' ),
+								strtotime( '+1 month' )
+							),
+							'compare' => 'BETWEEN'
+						);
+						$qv['meta_query'][] = array(
+							'key'     => 'foolic_deactivated',
+							'value'	=> 1,
+							'compare' => 'NOT EXISTS'
+						);
+
+					} else if ('expired' == $filter ) {
+						$qv['meta_query'][] = array(
+							'key'     => 'foolic_expires',
+							'value'   => current_time( 'timestamp' ),
+							'compare' => '<='
+						);
+						$qv['meta_query'][] = array(
+							'key'     => 'foolic_deactivated',
+							'value'	=> 1,
+							'compare' => 'NOT EXISTS'
+						);
+					}
+				}
+
+			}
+		}
+	}
 }

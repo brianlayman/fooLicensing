@@ -64,6 +64,8 @@ function foolic_perform_renewal( $licensekey_id ) {
 		);
 		foolic_update_renewals( $license_key->ID, $existing_renewals );
 
+		do_action('foolic_perform_renewal', $license_key->ID);
+
 		return $renewal_id;
 	}
 

@@ -30,7 +30,7 @@ if (!class_exists('foolic_menus')) {
 
             add_submenu_page($top_level, __('Domains', 'foolic'), __('Domains', 'foolic'), 'read_' . FOOLIC_CPT_DOMAIN, 'edit.php?post_type=' . FOOLIC_CPT_DOMAIN);
 
-            //add_submenu_page($top_level, __('Overages', 'foolic'), __('Overages', 'foolic'),  'view_license_overages', 'foolic_page_overages', array(&$this, 'render_page_overages'));
+            add_submenu_page($top_level, __('Overages', 'foolic'), __('Overages', 'foolic'),  'view_license_overages', 'foolic_page_overages', array(&$this, 'render_page_overages'));
 
 			if (foolic_get_option('enable_renewals', false)) {
 				add_submenu_page($top_level, __('Renewals', 'foolic'), __('Renewals', 'foolic'), 'read_' . FOOLIC_CPT_RENEWAL, 'edit.php?post_type=' . FOOLIC_CPT_RENEWAL);

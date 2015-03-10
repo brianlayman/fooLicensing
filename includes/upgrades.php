@@ -16,7 +16,7 @@ function foolic_perform_upgrade( $licensekey_id, $upgrade_license_id ) {
 		return false;
 	}
 
-	if ( $license_key->domain_limit > 0 && !$license_key->is_deactivated() ) {
+	if ( !$license_key->is_deactivated() ) {
 		$date_format = get_option('date_format');
 
 		$expiry_date = $license_key->expires;

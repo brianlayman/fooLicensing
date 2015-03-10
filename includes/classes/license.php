@@ -70,10 +70,10 @@ if (!class_exists('foolic_license')) {
 
             $this->validation_message = self::get_meta($data, 'validation_message', '');
 
-            //Useful URLs
-//            $this->url_check_for_updates = home_url("/api/{$this->slug}/check/");
-//            $this->url_validate = home_url("/api/{$this->slug}/validate/");
-//            $this->url_details = home_url("/api/{$this->slug}/details/");
+			$this->renewals_disabled = self::is_checked($data, 'renewals_disabled', false);
+
+			$this->third_party_license = self::is_checked($data, 'third_party_license', false);
+			$this->third_party_license_message = self::get_meta($data, 'third_party_license_message', '');
 
             do_action('foolic_license_load_extra', $this, $license);
         }

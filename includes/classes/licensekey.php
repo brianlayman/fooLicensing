@@ -76,15 +76,12 @@ if (!class_exists('foolic_licensekey')) {
             $this->expires = self::get_meta($data, 'expires', 'never');
             $this->domain_limit = intval(self::get_meta($data, 'domain_limit', 0));
 
-			//store the meta data we want to query
-			$this->store_meta_data();
-
             $this->meta_display = get_post_meta($licensekey->ID, self::META_DISPLAY, true);
             $this->errors = get_post_meta($licensekey->ID, self::META_ERROR, true);
         }
 
 		//Stores the license key meta data. As of v1.1.0, license key info needs to be stored as meta data so that it can be queried for renewals etc
-		private function store_meta_data() {
+		public function store_meta_data() {
 			//if our license key has been exceeded, then store that in meta data
 			if ( $this->exceeded === true ) {
 				update_post_meta( $this->ID, self::META_EXCEEDED, 1 );
@@ -92,10 +89,15 @@ if (!class_exists('foolic_licensekey')) {
 				delete_post_meta( $this->ID, self::META_EXCEEDED );
 			}
 
+			$expires = false;
 			//if our license key expires then store that in meta data
 			if ( $this->expires !== 'never' ) {
-				update_post_meta( $this->ID, self::META_EXPIRES, strtotime($this->expires) );
-			} else {
+				if (!$this->get_license()->renewals_disabled) {
+					update_post_meta( $this->ID, self::META_EXPIRES, strtotime($this->expires) );
+					$expires = true;
+				}
+			}
+			if (!$expires) {
 				delete_post_meta( $this->ID, self::META_EXPIRES );
 			}
 
@@ -208,7 +210,8 @@ if (!class_exists('foolic_licensekey')) {
                     'post_count' => -1,
                     'post_status' => 'any',
 					'nopaging' => true,
-                    'suppress_filters' => false
+                    'suppress_filters' => false,
+					'orderby' => 'none'
                 ));
                 if ($connected_domains) {
                     $this->_domains = $connected_domains;
@@ -224,6 +227,27 @@ if (!class_exists('foolic_licensekey')) {
         function has_exceeded_domain_limit() {
             return $this->exceeded !== false;
         }
+
+		function usage_html() {
+			$pre = '';
+			$post = '';
+
+			if ( $this->has_exceeded_domain_limit() ) {
+				$pre = "<strong style='color:#f00'>";
+				$post = '</strong>';
+			}
+
+			return $pre . $this->attached_domains_count() . $post . ' / ' . $this->usage_limit();
+		}
+
+		function usage_limit() {
+			return ($this->domain_limit == 0) ? __( 'Unlimited', 'foolicensing' ) : $this->domain_limit;
+		}
+
+		function attached_domains_count() {
+			$attached_domains = $this->get_attached_domains();
+			return count( $attached_domains );
+		}
 
         function does_expire() {
             return $this->expires !== false && $this->expires !== 'never' && $this->expires !== '';
@@ -263,31 +287,33 @@ if (!class_exists('foolic_licensekey')) {
             if (!$this->does_expire()) {
                 return 'Never';
             }
+			$timestamp = strtotime($this->expires);
 
-            $timestamp = strtotime($this->expires);
+			$relativeDate = new Foo_HumanRelativeDate($timestamp);
 
-            $difference = time() - $timestamp;
-            $periods = array(" sec", " min", " hour", " day", " week", " month", " year", " decade");
-            $lengths = array("60", "60", "24", "7", "4", "12", "10");
-
-            if ($difference > 0) {
-                $ending = " ago.";
-            } else {
-                $difference = -$difference;
-                $ending = ".";
-            }
-
-            for ($j = 0; $difference >= $lengths[$j]; $j++) {
-                $difference /= $lengths[$j];
-            }
-
-            $difference = round($difference);
-
-            if ($difference != 1) {
-                $periods[$j] .= "s";
-            }
-
-            return $difference . $periods[$j] . $ending;
+            return $relativeDate->getString();
+//
+//            $difference = time() - $timestamp;
+//            $periods = array(" sec", " min", " hour", " day", " week", " month", " year", " decade");
+//            $lengths = array("60", "60", "24", "7", "4", "12", "10");
+//
+//            if ($difference > 0) {
+//                $ending = " ago.";
+//            } else {
+//                $difference = -$difference;
+//                $ending = ".";
+//            }
+//
+//            for ($j = 0; $difference >= $lengths[$j]; $j++) {
+//                $difference /= $lengths[$j];
+//            }
+//
+//            $difference = round($difference);
+//
+//            if ($difference != 1) {
+//                $periods[$j] .= "s";
+//            }
+//            return $difference . $periods[$j] . $ending;
         }
 
         function process_domains() {
@@ -475,5 +501,137 @@ if (!class_exists('foolic_licensekey')) {
 			}
 		}
     }
+
+}
+
+/*
+
+Human Friendly dates by Invent Partners
+We hope you enjoy using this free class.
+Remember us next time you need some software expertise!
+http://www.inventpartners.com
+
+*/
+
+class Foo_HumanRelativeDate{
+
+	private $current_timestamp;
+	private $current_timestamp_day;
+	private $event_timestamp;
+	private $event_timestamp_day;
+	private $string = 'now';
+	private $magic_1_day = 86400;
+	private $magic_1_week = 604800;
+
+	public function __construct($event_timestamp){
+
+		$this->current_timestamp = time();
+		$this->current_timestamp_day = mktime(0,  0 ,  0 , $month = date("n") , $day = date("j") , date("Y"));
+
+		$this->event_timestamp = $event_timestamp;
+		$this->event_timestamp_day = mktime(0,  0 ,  0 , $month = date("n", $event_timestamp) , $day = date("j", $event_timestamp) , date("Y", $event_timestamp));
+
+	}
+
+	public function getString(){
+
+		// Is this today
+		if($this->event_timestamp_day == $this->current_timestamp_day){
+			$this->string = 'today';
+			return $this->string;
+		} else {
+			$this->calcDateDiffString();
+			return $this->string;
+		}
+
+	}
+
+	protected function calcDateDiffString(){
+
+		$diff = $this->event_timestamp_day - $this->current_timestamp_day;
+
+		// Future events
+		if($diff > 0){
+			//Tomorrow
+			if($diff >= $this->magic_1_day && $diff < ($this->magic_1_day * 2)){
+				$this->string = 'tomorrow';
+				return true;
+			} else if($diff <= $this->magic_1_week){
+				// Find out if this date is this week or next!
+				$current_day = date('w' , $this->current_timestamp_day);
+				if($current_day == 0){
+					$current_day = 7;
+				}
+				$event_day = date('w' , $this->event_timestamp_day);
+				if($event_day == 0){
+					$event_day = 7;
+				}
+				if($event_day > $current_day){
+					$this->string = 'this ' . date('l' , $this->event_timestamp_day);
+				} else {
+					$this->string = 'next ' . date('l' , $this->event_timestamp_day);
+				}
+			} else if($diff <= ($this->magic_1_week * 2) ) {
+				$this->string = 'a week on ' . date('l' , $this->event_timestamp_day);
+			} else {
+				$month_diff = $this->calcMonthDiff();
+				if($month_diff == 0){
+					$this->string = 'later this month';
+				} else if($month_diff == 1){
+					$this->string = 'next month';
+				} else {
+
+					if ($month_diff > 12) {
+
+						//show years!
+						if ($month_diff < 24) {
+							$this->string = 'in 1 year';
+						} else {
+							$this->string = 'in ' . intval($month_diff / 12) . ' years';
+						}
+					} else {
+						$this->string = 'in ' . $month_diff . ' months';
+					}
+				}
+			}
+		}
+		// Historical events
+		else {
+			$diff = abs($diff);
+			//Tomorrow
+			if($diff >= $this->magic_1_day && $diff < ($this->magic_1_day * 2)){
+				$this->string = 'yesterday';
+				return true;
+			} else if($diff <= $this->magic_1_week){
+				$this->string = 'last ' . date('l' , $this->event_timestamp_day);
+			} else if($diff <= ($this->magic_1_week * 2) ) {
+				$this->string = 'over a week ago ';
+			} else {
+				$month_diff = $this->calcMonthDiff();
+				if($month_diff == 0){
+					$this->string = 'earlier this month';
+				} else if($month_diff == 1){
+					$this->string = 'last month';
+				} else {
+					if($month_diff > 12){
+						$this->string = 'over a year ago';
+					} else {
+						$this->string = $month_diff . ' months ago';
+					}
+				}
+			}
+
+		}
+
+	}
+
+	protected function calcMonthDiff(){
+
+		$event_month = intval( (date('Y' , $this->event_timestamp_day) * 12) + date('m' , $this->event_timestamp_day));
+		$current_month = intval( (date('Y' , $this->current_timestamp_day) * 12) + date('m' , $this->current_timestamp_day));
+		$month_diff = abs($event_month - $current_month);
+		return $month_diff;
+
+	}
 
 }

@@ -34,7 +34,7 @@ if (!class_exists('foolic_api_validate')) {
 			}
             if ($checker->get_licensekey_instance() !== false && $checker->get_licensekey_instance()->ID > 0) {
 				$expires = $checker->get_licensekey_instance()->expires;
-				$domains = $checker->get_licensekey_instance()->get_domains_array();
+				$domains = $checker->get_licensekey_instance()->get_domains();
 			}
 
             $details = array(

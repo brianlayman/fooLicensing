@@ -41,7 +41,7 @@ if ( !class_exists( 'foolic_admin_settings' ) ) {
 				'id'      => 'detach_message_success',
 				'title'   => __( 'Detachment Success Message', 'foolicensing' ),
 				'type'    => 'textarea',
-				'default' => __( 'The domain has been successfully detached. Please make sure that you remove the license key from the plugin settings page. If you do not remove it, the domain will attach itself to the license key again automatically.', 'foolicensing' ),
+				'default' => __( 'The domain has been successfully detached. Please login to {domain} and remove the license key in your {plugin} settings page, then make sure to "Save Changes" after removal. If you do not remove it, the domain will attach itself to the license key again automatically.', 'foolicensing' ),
 				'section' => 'detachments',
 				'tab'     => 'messages',
 				'class'   => 'medium_textarea'

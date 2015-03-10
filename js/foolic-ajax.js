@@ -43,6 +43,8 @@
 
 			$this.attr('disabled', 'disabled');
 
+			$this.addClass('foolic-loading');
+
 			$.ajax({
 				type: "POST",
 				data: data,
@@ -50,15 +52,28 @@
 				url: foolic_scripts.ajaxurl,
 				success : function(response) {
 					var messageClass = (response.success === 1) ? 'success' : 'failure',
-						$message = $('<div class="foolic-message foolic-message-' + messageClass + '">' + response.message + '</div>');
+						message = FOOLIC.fixMessage(response.message, $this),
+						$message = $('<div class="foolic-message foolic-message-' + messageClass + '">' + message + '</div>');
 					if (response.success === 1) {
 						$message.append(' <a href="#" onclick="window.location.reload(); return false;">' + foolic_scripts.refresh_license + '</a>');
 					}
 					$this.after($message);
 					$this.hide();
+				},
+				complete : function() {
+					$this.removeClass('foolic-loading');
 				}
 			});
 		});
+	};
+
+	FOOLIC.fixMessage = function(message, $this) {
+		var domain = $this.parents('td:first').find('.foolic-domain:first').text(),
+			plugin = $this.parents('.foolic_license_listing_item:first').find('h2:first').text();
+
+		message = message.replace('{domain}', '<a href="' + domain + '">' + domain + '</a>');
+		message = message.replace('{plugin}', '<strong>' + plugin + '</strong>');
+		return message;
 	};
 
 	FOOLIC.ready = function () {

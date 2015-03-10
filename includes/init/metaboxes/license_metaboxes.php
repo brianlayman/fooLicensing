@@ -12,10 +12,10 @@ if (!class_exists('foolic_license_metaboxes')) {
 
         function __construct($plugin_file) {
             $this->_plugin_file = $plugin_file;
-            add_action('add_meta_boxes_' . FOOLIC_CPT_LICENSE, array(&$this, 'add_meta_boxes_to_license'));
+            add_action('add_meta_boxes_' . FOOLIC_CPT_LICENSE, array($this, 'add_meta_boxes_to_license'));
 
             //save extra post data
-            add_action('save_post', array(&$this, 'save_post_meta'));
+            add_action('save_post', array($this, 'save_post_meta'));
         }
 
         function save_post_meta($post_id) {
@@ -48,7 +48,7 @@ if (!class_exists('foolic_license_metaboxes')) {
             add_meta_box(
                 'foolicense_details',
                 __('License Details', 'foolic'),
-                array(&$this, 'render_license_details_metabox'),
+                array($this, 'render_license_details_metabox'),
                 FOOLIC_CPT_LICENSE,
                 'normal',
                 'high'
@@ -57,7 +57,7 @@ if (!class_exists('foolic_license_metaboxes')) {
             add_meta_box(
                 'foolicense_key',
                 __('License Key Generation', 'foolic'),
-                array(&$this, 'render_license_key_metabox'),
+                array($this, 'render_license_key_metabox'),
                 FOOLIC_CPT_LICENSE,
                 'normal',
                 'high'
@@ -65,19 +65,37 @@ if (!class_exists('foolic_license_metaboxes')) {
 
             add_meta_box(
                 'foolicense_update',
-                __('Checking For Updates'),
-                array(&$this, 'render_license_update_metabox'),
+                __('Checking For Updates', 'foolic'),
+                array($this, 'render_license_update_metabox'),
                 FOOLIC_CPT_LICENSE,
                 'normal',
                 'high'
             );
 
 			add_meta_box(
-				'foolicense_vendor',
-				__('Vendor'),
-				array(&$this, 'render_license_vendor_metabox'),
+				'foolicense_renewals',
+				__('Renewals', 'foolic'),
+				array($this, 'render_license_renewals_metabox'),
 				FOOLIC_CPT_LICENSE,
 				'side',
+				'default'
+			);
+
+			add_meta_box(
+				'foolicense_vendor',
+				__('Vendor', 'foolic'),
+				array($this, 'render_license_vendor_metabox'),
+				FOOLIC_CPT_LICENSE,
+				'side',
+				'default'
+			);
+
+			add_meta_box(
+				'foolicense_third_party',
+				__('Vendor License Key Management', 'foolic'),
+				array($this, 'render_license_third_party_metabox'),
+				FOOLIC_CPT_LICENSE,
+				'normal',
 				'default'
 			);
 
@@ -90,6 +108,22 @@ if (!class_exists('foolic_license_metaboxes')) {
 				$this->_license->load($post);
 			}
 			return $this->_license;
+		}
+
+		function render_license_renewals_metabox($post) {
+			$license = $this->get_license($post);
+			?>
+			<table class="form-table">
+				<tbody>
+				<tr>
+					<td style="width:150px" class="first-column" valign="top"><?php _e('Disable Renewals', 'foolic'); ?></td>
+					<td>
+						<input name="<?php echo FOOLIC_CPT_LICENSE; ?>[renewals_disabled]" type="checkbox" value="on" <?php echo $license->renewals_disabled ? 'checked="checked"':'' ?> />
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		<?php
 		}
 
 		function render_license_vendor_metabox($post) {
@@ -197,6 +231,38 @@ if (!class_exists('foolic_license_metaboxes')) {
             </tbody>
             </table><?php
         }
+
+		function render_license_third_party_metabox($post) {
+			$license = $this->get_license($post);
+			?>
+			<table class="form-table">
+			<tbody>
+			<tr>
+				<td class="first-column" valign="top"><?php _e('Are License Keys Managed By A 3rd Party Vendor?', 'foolic'); ?></td>
+				<td>
+					<input name="<?php echo FOOLIC_CPT_LICENSE; ?>[third_party_license]" type="checkbox" value="on" <?php echo $license->third_party_license ? 'checked="checked"':'' ?> />
+				</td>
+			</tr>
+			<tr>
+				<td class="first-column" valign="top"><?php _e('Vendor License Key Management Message', 'foolic'); ?></td>
+				<td>
+					<?php
+					$args = array (
+						'media_buttons' => false,
+						'wpautop' => false
+					);
+					wp_editor( $license->third_party_license_message, FOOLIC_CPT_LICENSE.'[third_party_license_message]', $args ); ?>
+					<br />
+					<small><?php _e('The message that is displayed to a customer in their license key listing.', 'foolic'); ?></small>
+				</td>
+			</tr>
+
+			<?php
+			do_action('foolic_render_license_third_party_metabox', $post);
+			?>
+			</tbody>
+			</table><?php
+		}
 
         function render_license_update_metabox($post) {
 			$license = $this->get_license($post);
